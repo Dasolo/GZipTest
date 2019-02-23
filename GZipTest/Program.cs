@@ -1,13 +1,10 @@
-﻿using System;
-using System.IO;
-using System.IO.Compression;
-using System.Diagnostics;
-
-namespace GZipTest
+﻿namespace GZipTest
 {
-    class Program
+    using System.IO;
+
+    internal class Program
     {
-        static void Main(string[] args)
+        internal static void Main(string[] args)
         {
             var inputFile = @"c:\temp\test.bin";
             var outputFile = @"c:\temp\test.zip";
@@ -18,7 +15,5 @@ namespace GZipTest
             outFile.Close();
             inFile.Close();
         }
- 
     }
-
 }

@@ -1,14 +1,16 @@
-﻿using System;
-using System.IO;
-
-namespace GZipTest
+﻿namespace GZipTest
 {
-    class ThreadedGZip
+    using System.IO;
+
+    internal class ThreadedGZip
     {
-        private Stream Input;
-        private Stream Output;
-        static int BufferSize = 1024 * 1024 * 20;
-        static void Copy(Stream input, Stream output)
+        private Stream input;
+
+        private Stream output;
+
+        internal static int BufferSize = 1024 * 1024 * 20;
+
+        internal static void Copy(Stream input, Stream output)
         {
             var buffer = new byte[BufferSize];
             int bytesRead;
@@ -19,16 +21,15 @@ namespace GZipTest
             }
         }
 
-
         public ThreadedGZip(Stream _input, Stream _output)
         {
-            this.Input = _input;
-            this.Output = _output;
+            this.input = _input;
+            this.output = _output;
         }
 
         public void CopyStreams()
         {
-            Copy(Input, Output);
-        } 
+            Copy(input, output);
+        }
     }
 }
