@@ -1,7 +1,9 @@
 ﻿namespace GZipTest
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
+    using System.IO.Compression;
 
     internal class Program
     {
@@ -12,7 +14,10 @@
             var outFile = File.Create(outputFile);
             var inFile = new FileStream(inputFile, FileMode.Open);
             var Gzip = new ThreadedGZip(inFile, outFile);
-            Gzip.Start(100);
+            var sw = Stopwatch.StartNew();
+            Gzip.Start(20, CompressionMode.Compress);
+            Gzip.WaitAll();
+            Console.WriteLine("All end {0}", sw.ElapsedMilliseconds);
             Console.ReadLine();
             outFile.Close();
             inFile.Close();
