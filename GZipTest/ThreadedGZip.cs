@@ -1,5 +1,6 @@
 ﻿namespace GZipTest
 {
+    using System.Collections.Generic;
     using System.IO;
 
     internal class ThreadedGZip
@@ -8,28 +9,26 @@
 
         private Stream output;
 
-        internal static int BufferSize = 1024 * 1024 * 20;
-
-        internal static void Copy(Stream input, Stream output)
-        {
-            var buffer = new byte[BufferSize];
-            int bytesRead;
-            input.Seek(0, SeekOrigin.Begin);
-            while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                output.Write(buffer, 0, bytesRead);
-            }
-        }
+        private Dictionary<int, GZipThread> zippers;
 
         public ThreadedGZip(Stream _input, Stream _output)
         {
             this.input = _input;
             this.output = _output;
+            this.zippers = new Dictionary<int, GZipThread>();
         }
 
-        public void CopyStreams()
+        public void Start(int threadCount)
         {
-            Copy(input, output);
+            for (var i = 0; i < threadCount; i++)
+            {
+                zippers.Add(i, new GZipThread(i));
+            }
+
+            foreach (var zipper in zippers)
+            {
+                zipper.Value.Start();
+            }
         }
     }
 }

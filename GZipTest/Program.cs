@@ -1,5 +1,6 @@
 ﻿namespace GZipTest
 {
+    using System;
     using System.IO;
 
     internal class Program
@@ -11,7 +12,8 @@
             var outFile = File.Create(outputFile);
             var inFile = new FileStream(inputFile, FileMode.Open);
             var Gzip = new ThreadedGZip(inFile, outFile);
-            Gzip.CopyStreams();
+            Gzip.Start(100);
+            Console.ReadLine();
             outFile.Close();
             inFile.Close();
         }
