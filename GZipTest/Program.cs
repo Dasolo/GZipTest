@@ -13,9 +13,9 @@
             var outputFile = @"c:\temp\test.zip";
             var outFile = File.Create(outputFile);
             var inFile = new FileStream(inputFile, FileMode.Open);
-            var Gzip = new ThreadedGZip(inFile, outFile);
+            var Gzip = new ThreadedGZip(inFile, outFile, 20);
             var sw = Stopwatch.StartNew();
-            Gzip.Start(20, CompressionMode.Compress);
+            Gzip.Start(CompressionMode.Compress);
             Gzip.WaitAll();
             Console.WriteLine("All end {0}", sw.ElapsedMilliseconds);
             Console.ReadLine();

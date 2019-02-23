@@ -1,5 +1,6 @@
 ﻿namespace GZipTest
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
@@ -12,14 +13,17 @@
 
         private Dictionary<int, GZipThread> zippers;
 
-        public ThreadedGZip(Stream _input, Stream _output)
+        private int threadCount;
+
+        public ThreadedGZip(Stream _input, Stream _output, int _threadCount)
         {
             this.input = _input;
             this.output = _output;
+            this.threadCount = _threadCount;
             this.zippers = new Dictionary<int, GZipThread>();
         }
 
-        public void Start(int threadCount, CompressionMode compressionMode)
+        public void Start(CompressionMode compressionMode)
         {
             int BufferSize = (int)input.Length / threadCount;
             var buffer = new byte[BufferSize];
@@ -39,9 +43,21 @@
 
         public void WaitAll()
         {
+            int BufferSize = (int)input.Length / threadCount;
+            var buffer = new byte[BufferSize];
+            int bytesRead;
+            int offset = 0;
             foreach (var zipper in zippers)
             {
                 zipper.Value.Wait();
+                var tempStream = zipper.Value.resultStream;
+                tempStream.Seek(0, SeekOrigin.Begin);
+                while ((bytesRead = tempStream.Read(buffer, 0, BufferSize)) > 0)
+                {
+                    output.Write(buffer, offset, bytesRead);
+                    offset += bytesRead;
+                    Console.WriteLine("Байтов записано {0}", bytesRead);
+                }                
             }
         }
     }

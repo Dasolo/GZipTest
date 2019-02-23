@@ -12,7 +12,13 @@
 
         internal byte[] inputData;
 
-        internal Stream resultStream;
+        internal Stream _resultStream;
+
+        public Stream resultStream
+        {
+            get { return _resultStream; }
+            set { _resultStream = value; }
+        }
 
         internal CompressionMode compressionMode;
 
@@ -21,10 +27,8 @@
         private void ThreadProc()
         {
             mutex.WaitOne();
-            using (var compressor = new GZipStream(resultStream, compressionMode))
-            {
-                compressor.Write(inputData, 0, inputData.Length);
-            }
+            var compressor = new GZipStream(_resultStream, compressionMode);
+            compressor.Write(inputData, 0, inputData.Length);
             mutex.ReleaseMutex();
         }
 
@@ -34,7 +38,7 @@
             this.Number = _number;
             this.inputData = _inputData;
             this.compressionMode = _compressionMode;
-            this.resultStream = new MemoryStream();
+            this._resultStream = new MemoryStream();
             this.mutex = new Mutex();
         }
 
