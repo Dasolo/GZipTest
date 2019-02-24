@@ -1,10 +1,11 @@
 ﻿namespace GZipTest
 {
+    using System;
+    using System.Threading;
     using System.IO;
     using System.IO.Compression;
-    using System.Threading;
 
-    internal class GZipThread
+    internal class GZipThread: IDisposable
     {
         internal Thread Thread;
 
@@ -12,49 +13,53 @@
 
         internal byte[] inputData;
 
-        internal Stream _resultStream;
+        public Stream resultStream;
 
         internal int bytesCount;
 
-        public Stream resultStream
-        {
-            get { return _resultStream; }
-            set { _resultStream = value; }
-        }
 
         internal CompressionMode compressionMode;
 
         internal Semaphore semaphore;
 
+        private Semaphore threadsSemaphore;
+
         private void ThreadProc()
         {
+            threadsSemaphore.WaitOne();
             if (compressionMode == CompressionMode.Compress)
             {
-                var compressor = new GZipStream(_resultStream, compressionMode);
-                compressor.Write(inputData, 0, bytesCount);
+                var compressor = new GZipStream(resultStream, compressionMode);
+                compressor.Write(inputData, 0, bytesCount);    
             }
             else
             {
-                var inputStream = new MemoryStream(inputData);
-                var decompressor = new GZipStream(inputStream, compressionMode);
-                var buffer = new byte[bytesCount];
-                int bytesRead;
-                while ((bytesRead = decompressor.Read(buffer, 0, bytesCount)) > 0)
-                {
-                    _resultStream.Write(buffer, 0, bytesRead);
+                using (var inputStream = new MemoryStream(inputData)) {
+                    using (var decompressor = new GZipStream(inputStream, compressionMode))
+                    {
+                        var buffer = new byte[bytesCount];
+                        int bytesRead;
+                        while ((bytesRead = decompressor.Read(buffer, 0, bytesCount)) > 0)
+                        {
+                            resultStream.Write(buffer, 0, bytesRead);
+                        }
+                    }
+                    inputStream.Close();
                 }
             }
             semaphore.Release();
+            threadsSemaphore.Release();
         }
 
-        public GZipThread(int _number, byte[] _inputData, int _bytesCount, CompressionMode _compressionMode)
+        public GZipThread(int _number, byte[] _inputData, int _bytesCount, Semaphore _threadsSemaphore, CompressionMode _compressionMode)
         {
             this.Thread = new Thread(new ThreadStart(ThreadProc));
             this.Number = _number;
             this.inputData = _inputData;
             this.compressionMode = _compressionMode;
-            this._resultStream = new MemoryStream();
+            this.resultStream = new MemoryStream();
             this.bytesCount = _bytesCount;
+            this.threadsSemaphore = _threadsSemaphore;
             this.semaphore = new Semaphore(1, 1);
         }
 
@@ -68,6 +73,12 @@
         {
             semaphore.WaitOne();
             semaphore.Release();
+        }
+
+        public void Dispose()
+        {
+            resultStream.Dispose();
+            inputData = null;
         }
     }
 }
