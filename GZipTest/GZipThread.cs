@@ -38,9 +38,9 @@
             {
                 var inputStream = new MemoryStream(inputData);
                 var decompressor = new GZipStream(inputStream, compressionMode);
-                var buffer = new byte[1024*1024*100];
+                var buffer = new byte[bytesCount];
                 int bytesRead;
-                while((bytesRead = decompressor.Read(buffer, 0, 1024 * 1024 * 100)) > 0)
+                while((bytesRead = decompressor.Read(buffer, 0, bytesCount)) > 0)
                 {
                     _resultStream.Write(buffer, 0, bytesRead);
                 }
