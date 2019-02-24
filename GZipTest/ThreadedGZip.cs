@@ -15,23 +15,27 @@
 
         private int threadCount;
 
-        public ThreadedGZip(Stream _input, Stream _output, int _threadCount)
+        private CompressionMode compressionMode;
+
+        public ThreadedGZip(Stream _input, Stream _output, int _threadCount, CompressionMode _compressionMode)
         {
             this.input = _input;
             this.output = _output;
             this.threadCount = _threadCount;
+            this.compressionMode = _compressionMode;
             this.zippers = new Dictionary<int, GZipThread>();
         }
 
-        public void Start(CompressionMode compressionMode)
+        public void Start()
         {
             int BufferSize = (int)input.Length / threadCount;
             var buffer = new byte[BufferSize];
             input.Seek(0, SeekOrigin.Begin);
             int i = 0;
-            while (input.Read(buffer, 0, BufferSize) > 0)
+            int bytesRead;
+            while ((bytesRead = input.Read(buffer, 0, BufferSize)) > 0)
             {
-                zippers.Add(i, new GZipThread(i, buffer, compressionMode));
+                zippers.Add(i, new GZipThread(i, buffer, bytesRead, compressionMode));
                 i++;
             }
 
@@ -39,14 +43,14 @@
             {
                 zipper.Value.Start();
             }
+            WriteResults();
         }
 
-        public void WaitAll()
+        public void WriteResults()
         {
             int BufferSize = (int)input.Length / threadCount;
             var buffer = new byte[BufferSize];
             int bytesRead;
-            int offset = 0;
             foreach (var zipper in zippers)
             {
                 zipper.Value.Wait();
@@ -54,9 +58,7 @@
                 tempStream.Seek(0, SeekOrigin.Begin);
                 while ((bytesRead = tempStream.Read(buffer, 0, BufferSize)) > 0)
                 {
-                    output.Write(buffer, offset, bytesRead);
-                    offset += bytesRead;
-                    Console.WriteLine("Байтов записано {0}", bytesRead);
+                    output.Write(buffer, 0, bytesRead);
                 }                
             }
         }
