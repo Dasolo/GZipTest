@@ -47,7 +47,7 @@
             {
                 BufferSize = GetLength(input);
             }
-            var buffer = new byte[BufferSize];           
+            var buffer = new byte[BufferSize];
             int i = 0;
             int bytesRead;
 
@@ -86,7 +86,7 @@
                         output.Write(length, 0, sizeof(int));
                     }
                     output.Write(buffer, 0, bytesRead);
-                }                
+                }
             }
         }
     }

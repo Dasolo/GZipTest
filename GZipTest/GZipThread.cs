@@ -1,6 +1,5 @@
 ﻿namespace GZipTest
 {
-    using System;
     using System.IO;
     using System.IO.Compression;
     using System.Threading;
@@ -40,7 +39,7 @@
                 var decompressor = new GZipStream(inputStream, compressionMode);
                 var buffer = new byte[bytesCount];
                 int bytesRead;
-                while((bytesRead = decompressor.Read(buffer, 0, bytesCount)) > 0)
+                while ((bytesRead = decompressor.Read(buffer, 0, bytesCount)) > 0)
                 {
                     _resultStream.Write(buffer, 0, bytesRead);
                 }
