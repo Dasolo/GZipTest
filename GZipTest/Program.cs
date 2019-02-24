@@ -15,13 +15,13 @@
             var outFile = File.Create(outputFile);
             var doutFile = File.Create(outfileDec);
             var inFile = new FileStream(inputFile, FileMode.Open);
-            var Gzip = new ThreadedGZip(inFile, outFile, 8, CompressionMode.Compress);
+            var Gzip = new ThreadedGZip(inFile, outFile, 12, CompressionMode.Compress);
             var sw = Stopwatch.StartNew();
             Gzip.Start();
             Console.WriteLine("All end {0}", sw.ElapsedMilliseconds);
             sw.Reset();
             sw.Start();
-            var unGzip = new ThreadedGZip(outFile, doutFile, 8, CompressionMode.Decompress);
+            var unGzip = new ThreadedGZip(outFile, doutFile, 3, CompressionMode.Decompress);
             unGzip.Start();
 
             Console.WriteLine("All end {0}", sw.ElapsedMilliseconds);
