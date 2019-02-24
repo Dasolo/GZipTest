@@ -9,32 +9,27 @@
     {
         internal static void Main(string[] args)
         {
-            var inputFile = @"c:\temp\test.bin";
-            var outputFile = @"c:\temp\test.gz";
-            var outfileDec = @"c:\temp\test1.bin";
-            var outFile = File.Create(outputFile);
-            var doutFile = File.Create(outfileDec);
-            var inFile = new FileStream(inputFile, FileMode.Open);
-            var sw = Stopwatch.StartNew();
-            using (var Gzip = new ThreadedGZip(inFile, outFile, 15, CompressionMode.Compress))
+            var command = args[0];
+            var input = args[1];
+            var output = args[2];
+
+            var inFile = new FileStream(input, FileMode.Open);
+            var outFile = File.Create(output);
+            CompressionMode compressionMode;
+            if (command == "compress")
+                compressionMode = CompressionMode.Compress;
+            else if (command == "decompress") 
+                compressionMode = CompressionMode.Decompress;
+            else
             {
-                Gzip.Start();
+                Console.WriteLine("Gzip compress — сжатие");
+                Console.WriteLine("Gzip decompress — распаковка");
+                return;
             }
-            Console.ReadLine();
-            Console.WriteLine("All end {0}", sw.ElapsedMilliseconds);
-            sw.Reset();
-            sw.Start();
-            var dinFile = new FileStream(outputFile, FileMode.Open);
-            using (var unGzip = new ThreadedGZip(dinFile, doutFile, 4, CompressionMode.Decompress))
-            {
-                unGzip.Start();
-            }
-            outFile.Close();
-            inFile.Close();
-            dinFile.Close();
-            doutFile.Dispose();
-            Console.WriteLine("All end {0}", sw.ElapsedMilliseconds);
-            Console.ReadLine();
+            using (var Gzip = new ThreadedGZip(inFile, outFile, 8, compressionMode))
+                {
+                    Gzip.Start();
+                }
 
         }
     }
