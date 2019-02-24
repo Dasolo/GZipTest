@@ -23,11 +23,11 @@
             sw.Start();
             var unGzip = new ThreadedGZip(outFile, doutFile, 3, CompressionMode.Decompress);
             unGzip.Start();
-
             Console.WriteLine("All end {0}", sw.ElapsedMilliseconds);
             Console.ReadLine();
             outFile.Close();
             inFile.Close();
+            doutFile.Close();
         }
     }
 }
