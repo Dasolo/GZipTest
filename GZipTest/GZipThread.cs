@@ -17,6 +17,8 @@
 
         internal int bytesCount;
 
+        private Boolean isZipped; 
+        
 
         internal CompressionMode compressionMode;
 
@@ -26,11 +28,14 @@
 
         private void ThreadProc()
         {
-            threadsSemaphore.WaitOne();
             if (compressionMode == CompressionMode.Compress)
             {
-                var compressor = new GZipStream(resultStream, compressionMode);
-                compressor.Write(inputData, 0, bytesCount);    
+                using (var compressor = new GZipStream(resultStream, compressionMode, true))
+                {
+                    compressor.Write(inputData, 0, bytesCount);
+                    Console.WriteLine("Было {0} стало {1} {2} {3}", bytesCount, resultStream.Length, compressionMode, Number);
+                }
+            
             }
             else
             {
@@ -47,8 +52,8 @@
                     inputStream.Close();
                 }
             }
+            this.isZipped = true;
             semaphore.Release();
-            threadsSemaphore.Release();
         }
 
         public GZipThread(int _number, byte[] _inputData, int _bytesCount, Semaphore _threadsSemaphore, CompressionMode _compressionMode)
@@ -60,17 +65,23 @@
             this.resultStream = new MemoryStream();
             this.bytesCount = _bytesCount;
             this.threadsSemaphore = _threadsSemaphore;
+            this.isZipped = false;
             this.semaphore = new Semaphore(1, 1);
         }
 
         public void Start()
         {
+            threadsSemaphore.WaitOne();
             semaphore.WaitOne();
             this.Thread.Start();
         }
 
         public void Wait()
         {
+            while (!isZipped)
+            {
+                Thread.Sleep(100);
+            }
             semaphore.WaitOne();
             semaphore.Release();
         }
