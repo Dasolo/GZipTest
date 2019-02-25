@@ -1,7 +1,6 @@
 ﻿namespace GZipTest
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
 
@@ -18,7 +17,7 @@
             CompressionMode compressionMode;
             if (command == "compress")
                 compressionMode = CompressionMode.Compress;
-            else if (command == "decompress") 
+            else if (command == "decompress")
                 compressionMode = CompressionMode.Decompress;
             else
             {
@@ -27,10 +26,9 @@
                 return;
             }
             using (var Gzip = new ThreadedGZip(inFile, outFile, 8, compressionMode))
-                {
-                    Gzip.Start();
-                }
-
+            {
+                Gzip.Start();
+            }
         }
     }
 }

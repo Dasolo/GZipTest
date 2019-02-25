@@ -1,28 +1,27 @@
 ﻿namespace GZipTest
 {
     using System;
-    using System.Threading;
     using System.IO;
     using System.IO.Compression;
+    using System.Threading;
 
-    internal class GZipThread: IDisposable
+    internal class GZipThread : IDisposable
     {
-        internal Thread Thread;
+        private Thread Thread;
 
-        internal int Number;
+        private int Number;
 
-        internal byte[] inputData;
+        private byte[] inputData;
 
         public Stream resultStream;
 
-        internal int bytesCount;
+        private int bytesCount;
 
-        private Boolean isZipped; 
-        
+        private Boolean isZipped;
 
-        internal CompressionMode compressionMode;
+        private CompressionMode compressionMode;
 
-        internal Semaphore semaphore;
+        private Semaphore semaphore;
 
         private Semaphore threadsSemaphore;
 
@@ -35,11 +34,12 @@
                     compressor.Write(inputData, 0, bytesCount);
                     Console.WriteLine("Было {0} стало {1} {2} {3}", bytesCount, resultStream.Length, compressionMode, Number);
                 }
-            
+
             }
             else
             {
-                using (var inputStream = new MemoryStream(inputData)) {
+                using (var inputStream = new MemoryStream(inputData))
+                {
                     using (var decompressor = new GZipStream(inputStream, compressionMode))
                     {
                         var buffer = new byte[bytesCount];

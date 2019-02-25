@@ -1,12 +1,12 @@
 ﻿namespace GZipTest
 {
     using System;
-    using System.Threading;
     using System.Collections.Generic;
     using System.IO;
     using System.IO.Compression;
+    using System.Threading;
 
-    internal class ThreadedGZip: IDisposable
+    internal class ThreadedGZip : IDisposable
     {
         private Stream input;
 
@@ -67,7 +67,7 @@
                 {
                     zippers.Add(i, new GZipThread(i, buffer, bytesRead, threadsSemaphore, compressionMode));
 
-                        
+
                     i++;
                     if (compressionMode == CompressionMode.Decompress)
                     {
@@ -78,7 +78,7 @@
             }
             new Thread(WriteResults).Start();
             var zippersCount = zippers.Count;
-            for(var j = 0; j < zippersCount; j++)
+            for (var j = 0; j < zippersCount; j++)
             {
                 zippers[j].Start();
             }
@@ -86,7 +86,7 @@
             writeSemaphore.Release();
         }
 
-        public void WriteResults()
+        private void WriteResults()
         {
             writeSemaphore.WaitOne();
             var BufferSize = CalcBufferSize();
@@ -94,21 +94,21 @@
             int bytesRead;
             var zippersCount = zippers.Count;
             BinaryWriter binaryWriter = new BinaryWriter(output);
-            for(var i = 0; i < zippersCount; i++)
-            { 
+            for (var i = 0; i < zippersCount; i++)
+            {
                 zippers[i].Wait();
                 var tempStream = zippers[i].resultStream;
                 tempStream.Seek(0, SeekOrigin.Begin);
-                    while ((bytesRead = tempStream.Read(buffer, 0, BufferSize)) > 0)
+                while ((bytesRead = tempStream.Read(buffer, 0, BufferSize)) > 0)
+                {
+                    if (compressionMode == CompressionMode.Compress)
                     {
-                        if (compressionMode == CompressionMode.Compress)
-                        {
-                            var length = BitConverter.GetBytes(bytesRead);
-                            binaryWriter.Write(length, 0, sizeof(int));
-                        }
-                        binaryWriter.Write(buffer, 0, bytesRead);
-                        Console.WriteLine("запись поток номер {0}", i);
+                        var length = BitConverter.GetBytes(bytesRead);
+                        binaryWriter.Write(length, 0, sizeof(int));
                     }
+                    binaryWriter.Write(buffer, 0, bytesRead);
+                    Console.WriteLine("запись поток номер {0}", i);
+                }
                 binaryWriter.Flush();
                 zippers[i].Dispose();
                 zippers.Remove(i);
