@@ -15,8 +15,13 @@
 
         public Stream resultStream;
 
+        private BinaryWriter output;
+
+        public GZipThread previous;
+
         internal int bytesCount;
 
+        private int offset;
         private Boolean isZipped; 
         
 
@@ -25,6 +30,33 @@
         internal Semaphore semaphore;
 
         private Semaphore threadsSemaphore;
+
+        private void Write()
+        {
+            var BufferSize = 1024 * 1024 * 200;
+            var buffer = new byte[BufferSize];
+            int bytesRead;
+            if (previous != null)
+                offset = previous.offset;
+            else
+                offset = 0;
+            resultStream.Seek(0, SeekOrigin.Begin);
+            while ((bytesRead = resultStream.Read(buffer, 0, BufferSize)) > 0)
+            {
+                output.Seek(offset, SeekOrigin.Current);
+                if (compressionMode == CompressionMode.Compress)
+                {
+                    var length = BitConverter.GetBytes(bytesRead);
+                    output.Write(length, 0, sizeof(int));
+                    offset += sizeof(int);
+                }
+                output.Write(buffer, 0, bytesRead);
+                offset += bytesRead;
+                output.Flush();
+                Console.WriteLine("запись поток номер {0} {1}", Number, bytesRead);
+            }
+            threadsSemaphore.Release();
+        }
 
         private void ThreadProc()
         {
@@ -52,11 +84,13 @@
                     inputStream.Close();
                 }
             }
+            if (previous != null)
+                previous.Wait();
+            Write();
             this.isZipped = true;
-            semaphore.Release();
         }
 
-        public GZipThread(int _number, byte[] _inputData, int _bytesCount, Semaphore _threadsSemaphore, CompressionMode _compressionMode)
+        public GZipThread(int _number, byte[] _inputData, int _bytesCount, Semaphore _threadsSemaphore, GZipThread _previous, BinaryWriter _output, CompressionMode _compressionMode)
         {
             this.Thread = new Thread(new ThreadStart(ThreadProc));
             this.Number = _number;
@@ -65,6 +99,8 @@
             this.resultStream = new MemoryStream();
             this.bytesCount = _bytesCount;
             this.threadsSemaphore = _threadsSemaphore;
+            this.previous = _previous;
+            this.output = _output;
             this.isZipped = false;
             this.semaphore = new Semaphore(1, 1);
         }
@@ -72,7 +108,6 @@
         public void Start()
         {
             threadsSemaphore.WaitOne();
-            semaphore.WaitOne();
             this.Thread.Start();
         }
 
@@ -82,8 +117,6 @@
             {
                 Thread.Sleep(100);
             }
-            semaphore.WaitOne();
-            semaphore.Release();
         }
 
         public void Dispose()
